@@ -24,7 +24,7 @@ declare module 'egg' {
   interface Application {
     etcd: {
       get(name: string): Server | null
-      update(data: { serverName: string, nodeName: string, serverIp: string, weight: number }): Promise<any>
+      update(data: { serverName: string, nodeName: string, serverIp: string, weight: number }): Promise<void>
     }
   }
 

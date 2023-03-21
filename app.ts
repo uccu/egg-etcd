@@ -28,11 +28,11 @@ export default class FooBoot implements IBoot {
 
         this.app.etcd = {
             get: (name: string): Server | null => getGroup(this.app, name).next(),
-            update: ({ serverName, nodeName, serverIp, weight }) => {
+            update: async ({ serverName, nodeName, serverIp, weight }) => {
                 const key = this.app.config.env + '/' + this.app.config.keys + '/' + serverName + '/' + nodeName + '/' + serverIp
                 const { hosts, dialTimeout } = this.app.config.etcd
                 const client = new Etcd3({ hosts, dialTimeout })
-                return client.put(key).value(weight).ignoreLease().exec();
+                await client.put(key).value(weight).ignoreLease().exec();
             }
         }
     }

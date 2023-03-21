@@ -11,7 +11,7 @@ export function getGroup(app: EggApplication, name: string) {
     return new Group(app, name);
 }
 
-export function getGroups() {
+export function getGroups(): { [key: string]: Group } {
     return groups
 }
 
