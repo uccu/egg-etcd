@@ -11,6 +11,10 @@ export function getGroup(app: EggApplication, name: string) {
     return new Group(app, name);
 }
 
+export function getGroups() {
+    return groups
+}
+
 export default class Group {
 
     public name: string
@@ -26,7 +30,11 @@ export default class Group {
         groups[this.name] = this
     }
 
-    setQueue() {
+    getAllServer(): Server[] {
+        return this.serverList
+    }
+
+    setQueue(): void {
         const queue: number[] = []
         for (let i = 0; i < this.serverList.length; i++) {
             for (let j = 0; j < this.serverList[i].weight; j++) {
@@ -36,7 +44,7 @@ export default class Group {
         this.queue = queue.sort(() => Math.random() - 0.5)
     }
 
-    add(server: Server) {
+    add(server: Server): void {
         for (const i in this.serverList) {
             if (this.serverList[i].ip === server.ip) {
                 this.serverList[i] = server
@@ -73,19 +81,19 @@ export default class Group {
         return false
     }
 
-    _movePoint() {
+    _movePoint(): void {
         this.p++
         if (this.queue.length <= this.p) {
             this.p = 0
         }
     }
 
-    next() {
+    next(): Server | null {
         if (this.queue.length == 0) return null
         return this._movePoint(), this.serverList[this.queue[this.p]] || this.next()
     }
 
-    sendToApp(type: string, server: Server) {
+    sendToApp(type: string, server: Server): void {
 
         if (this.app.options.type === 'agent') {
             this.app.messenger.sendToApp('discovery', { name: this.name, type, server })

@@ -1,7 +1,7 @@
-// import * as CacheService from './app/service/CacheService'
-
 import Server from "./lib/discovery/server"
+import { getGroup, getGroups } from "lib/discovery/group"
 
+export { getGroup, getGroups }
 
 interface EggRedisOptions {
   hosts: string[],
@@ -24,7 +24,7 @@ declare module 'egg' {
   interface Application {
     etcd: {
       get(name: string): Server | null
-      update(data: { serverName: string, nodeName: string, serverIp: string, weight: number }): Promise
+      update(data: { serverName: string, nodeName: string, serverIp: string, weight: number }): Promise<any>
     }
   }
 
@@ -32,3 +32,5 @@ declare module 'egg' {
     etcd: EggRedisOptions
   }
 }
+
+
