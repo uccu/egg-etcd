@@ -1,14 +1,15 @@
 {
-  "name": "egg-etcd",
+  "name": "egg-etcd-discovery",
   "version": "1.0.0",
-  "description": "provides egg bindings for the etcd.",
+  "description": "provides egg bindings for the etcd discovery.",
   "eggPlugin": {
-    "name": "eggEtcd"
+    "name": "eggEtcdDiscovery"
   },
   "keywords": [
     "egg",
     "etcd",
-    "egg-etcd",
+    "discovery",
+    "egg-etcd-discovery",
     "egg-plugin"
   ],
   "dependencies": {
@@ -48,12 +49,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/uccu/egg-etcd.git"
+    "url": "git+https://github.com/uccu/egg-etcd-discovery.git"
   },
   "bugs": {
-    "url": "https://github.com/uccu/egg-etcd/issues"
+    "url": "https://github.com/uccu/egg-etcd-discovery/issues"
   },
-  "homepage": "https://github.com/uccu/egg-etcd#README",
+  "homepage": "https://github.com/uccu/egg-etcd-discovery#README",
   "author": "cat@4moe.com",
   "license": "MIT"
 }

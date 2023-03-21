@@ -1,21 +1,21 @@
-# egg-etcd
+# egg-etcd-discovery
 
 provides egg bindings for the etcd.
 
-[![npm download](https://img.shields.io/github/actions/workflow/status/uccu/egg-etcd/npm-publish.yml)](https://github.com/uccu/egg-etcd/actions/workflows/npm-publish.yml)
+[![npm download](https://img.shields.io/github/actions/workflow/status/uccu/egg-etcd-discovery/npm-publish.yml)](https://github.com/uccu/egg-etcd-discovery/actions/workflows/npm-publish.yml)
 [![NPM version][npm-image]][npm-url]
-[![GitHub issues](https://img.shields.io/github/issues/uccu/egg-etcd)](https://github.com/uccu/egg-etcd/issues)
-![GitHub](https://img.shields.io/github/license/uccu/egg-etcd)
+[![GitHub issues](https://img.shields.io/github/issues/uccu/egg-etcd-discovery)](https://github.com/uccu/egg-etcd-discovery/issues)
+![GitHub](https://img.shields.io/github/license/uccu/egg-etcd-discovery)
 
-[npm-image]: https://img.shields.io/npm/v/egg-etcd.svg?style=flat-square
-[npm-url]: https://npmjs.org/package/egg-etcd
-[download-image]: https://img.shields.io/npm/dm/egg-etcd.svg?style=flat-square
-[download-url]: https://npmjs.org/package/egg-etcd
+[npm-image]: https://img.shields.io/npm/v/egg-etcd-discovery.svg?style=flat-square
+[npm-url]: https://npmjs.org/package/egg-etcd-discovery
+[download-image]: https://img.shields.io/npm/dm/egg-etcd-discovery.svg?style=flat-square
+[download-url]: https://npmjs.org/package/egg-etcd-discovery
 
 ## Install
 
 ```bash
-$ npm i egg-etcd --save
+$ npm i egg-etcd-discovery --save
 ```
 
 ## Usage
@@ -24,7 +24,7 @@ $ npm i egg-etcd --save
 // {app_root}/config/plugin.ts
 {
   enable: true,
-  package: 'egg-etcd',
+  package: 'egg-etcd-discovery',
 }
 
 /** 
@@ -40,7 +40,7 @@ this.app.etcd.get(serverName);
 
 ```js
 // {app_root}/config/config.default.js
-exports.eggEtcd = {
+exports.eggEtcdDiscovery = {
   hosts: [
       '172.17.0.1:2379', '72.17.0.2:2379', '72.17.0.3:2379'
   ],
@@ -60,7 +60,7 @@ see [config/config.default.ts](config/config.default.ts) for more detail.
 
 ## Questions & Suggestions
 
-Please open an issue [here](https://github.com/uccu/egg-etcd/issues).
+Please open an issue [here](https://github.com/uccu/egg-etcd-discovery/issues).
 
 ## License
 
