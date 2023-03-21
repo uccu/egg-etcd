@@ -40,6 +40,8 @@ export default class Group {
         for (const i in this.serverList) {
             if (this.serverList[i].ip === server.ip) {
                 this.serverList[i] = server
+                this.setQueue()
+                this.sendToApp('add', server)
                 return
             }
         }

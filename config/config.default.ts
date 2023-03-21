@@ -18,8 +18,10 @@ export default function () {
 
         serverName: 'etcd',
 
+        nodeName: 'node01',
+
         serverWeight: 1,
-        
+
         serverIp: 'localhost',
 
     };

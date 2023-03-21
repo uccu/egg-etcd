@@ -25,13 +25,14 @@ export default class Watcher {
     }
 
     put(res: IKeyValue) {
+
         const weight = parseInt(res.value.toString())
-        const [, , serverName, serverIp] = res.key.toString().split('/')
-        getGroup(this.app, serverName).add(new Server(serverIp, weight));
+        const [, , serverName, nodeName, serverIp] = res.key.toString().split('/')
+        getGroup(this.app, serverName).add(new Server(nodeName, serverIp, weight));
     }
 
     delete(res: IKeyValue) {
-        const [, , serverName, serverIp] = res.key.toString().split('/')
+        const [, , serverName, , serverIp] = res.key.toString().split('/')
         getGroup(this.app, serverName).remove(serverIp);
     }
 }

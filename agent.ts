@@ -15,12 +15,14 @@ export default class FooBoot implements IBoot {
         const etcdConfig = this.app.config.etcd;
         if (process.env.SERVER_WEIGHT) etcdConfig.serverWeight = parseInt(process.env.SERVER_WEIGHT);
         if (process.env.SERVER_IP) etcdConfig.serverIp = process.env.SERVER_IP;
+        if (process.env.NODE_NAME) etcdConfig.nodeName = process.env.NODE_NAME;
+        if (process.env.SERVER_NAME) etcdConfig.serverName = process.env.SERVER_NAME;
     }
 
     async didLoad() {
         const etcdConfig = this.app.config.etcd;
         this.etcd.setWatchPrefix(this.app.config.env + '/' + this.app.config.keys)
-        this.etcd.setLeaseKey(this.app.config.etcd.serverName + '/' + etcdConfig.serverIp)
+        this.etcd.setLeaseKey(etcdConfig.serverName + '/' + etcdConfig.nodeName + '/' + etcdConfig.serverIp)
     }
 
 

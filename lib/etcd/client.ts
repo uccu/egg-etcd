@@ -93,8 +93,8 @@ export default class Client {
         const data = await this._client.getAll().prefix(prefix).strings()
         for (const i in data) {
             const weight = parseInt(data[i])
-            const [, , serverName, serverIp] = i.split('/')
-            getGroup(this.app, serverName).add(new Server(serverIp, weight));
+            const [, , serverName, nodeName, serverIp] = i.split('/')
+            getGroup(this.app, serverName).add(new Server(nodeName, serverIp, weight));
         }
     }
 
