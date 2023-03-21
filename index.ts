@@ -1,5 +1,5 @@
 import Server from "./lib/discovery/server"
-import { getGroup, getGroups } from "lib/discovery/group"
+import { getGroup, getGroups } from "./lib/discovery/group"
 
 export { getGroup, getGroups }
 
@@ -12,8 +12,6 @@ interface EggRedisOptions {
   serverWeight: number,
   serverIp: string,
 }
-
-
 
 declare module 'egg' {
   interface EggApplication {
@@ -28,7 +26,7 @@ declare module 'egg' {
     }
   }
 
-  interface EggAppConfig {
+  export interface NewEggAppConfig {
     etcd: EggRedisOptions
   }
 }
