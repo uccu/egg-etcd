@@ -83,6 +83,7 @@ export default class Client {
 
         const w = new Watchers(this.app, this);
         ['disconnected', 'connected', 'put', 'delete'].forEach(e => {
+            // @ts-ignore
             this._watchers[prefix].on(e, w[e].bind(w))
         })
     }
