@@ -60,7 +60,7 @@ export default class Client {
         this.lease.release()
         this.initLease()
 
-        for (let key in this._lease) {
+        for (const key in this._lease) {
             await this.lease.put(key).value(this._lease[key]).exec()
         }
 
@@ -83,7 +83,6 @@ export default class Client {
 
         const w = new Watchers(this.app, this);
         ['disconnected', 'connected', 'put', 'delete'].forEach(e => {
-            // @ts-ignore
             this._watchers[prefix].on(e, w[e].bind(w))
         })
     }
@@ -91,7 +90,7 @@ export default class Client {
     async get() {
         const prefix = this.ETCD_WATCH_PREFIX
         const data = await this._client.getAll().prefix(prefix).strings()
-        for (let i in data) {
+        for (const i in data) {
             const weight = parseInt(data[i])
             const [, , serverName, serverIp] = i.split('/')
             getGroup(this.app, serverName).add(new Server(serverIp, weight));

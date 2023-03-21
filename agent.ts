@@ -36,4 +36,4 @@ export default class FooBoot implements IBoot {
         }
         this.etcd.close()
     }
-};
+}

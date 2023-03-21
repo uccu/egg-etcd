@@ -15,7 +15,7 @@ export default class Group {
 
     public name: string
     public app: EggApplication
-    private p: number = 0
+    private p = 0;
     private queue: number[] = [];
 
     private serverList: Server[] = []
@@ -37,7 +37,7 @@ export default class Group {
     }
 
     add(server: Server) {
-        for (let i in this.serverList) {
+        for (const i in this.serverList) {
             if (this.serverList[i].ip === server.ip) {
                 this.serverList[i] = server
                 return

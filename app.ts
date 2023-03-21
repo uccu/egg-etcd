@@ -4,7 +4,6 @@ import { getGroup } from "./lib/discovery/group";
 
 export default class FooBoot implements IBoot {
 
-    // @ts-ignore
     private readonly app: Application;
 
     constructor(app: Application) {
@@ -29,4 +28,4 @@ export default class FooBoot implements IBoot {
         }
     }
 
-};
+}
