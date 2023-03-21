@@ -1,0 +1,59 @@
+{
+  "name": "egg-etcd",
+  "version": "1.0.0",
+  "description": "provides egg bindings for the etcd.",
+  "eggPlugin": {
+    "name": "eggEtcd"
+  },
+  "keywords": [
+    "egg",
+    "etcd",
+    "egg-etcd",
+    "egg-plugin"
+  ],
+  "dependencies": {
+    "etcd3": "^1.1.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "tsc -b --clean",
+    "ci": "egg-bin pkgfiles --check && npm run lint",
+    "lint": "eslint .",
+    "pkgfiles": "egg-bin pkgfiles",
+    "dev": "npm run build && egg-bin dev"
+  },
+  "devDependencies": {
+    "egg": "^3",
+    "egg-bin": "^5",
+    "egg-ci": "^2",
+    "egg-mock": "^5",
+    "eslint": "^8",
+    "eslint-config-egg": "^12",
+    "mocha": "^10.2.0",
+    "@types/mocha": "^10.0.1",
+    "@eggjs/tsconfig": "1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "files": [
+    "config",
+    "lib",
+    "app.ts",
+    "agent.ts",
+    "index.d.ts"
+  ],
+  "ci": {
+    "version": "14, 16, 18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uccu/egg-etcd.git"
+  },
+  "bugs": {
+    "url": "https://github.com/uccu/egg-etcd/issues"
+  },
+  "homepage": "https://github.com/uccu/egg-etcd#README",
+  "author": "cat@4moe.com",
+  "license": "MIT"
+}
