@@ -1,7 +1,7 @@
 import { Application, IBoot } from "egg";
 import Server from "./lib/discovery/server";
 import { getGroup } from "./lib/discovery/group";
-import { Etcd3 } from "etcd3";
+import Controller from "lib/etcd/controller";
 
 export default class FooBoot implements IBoot {
 
@@ -26,15 +26,7 @@ export default class FooBoot implements IBoot {
             getGroup(this.app, name)[type](new Server(server.name, server.ip, server.weight))
         });
 
-        this.app.etcd = {
-            get: (name: string): Server | null => getGroup(this.app, name).next(),
-            update: async ({ serverName, nodeName, serverIp, weight }) => {
-                const key = this.app.config.env + '/' + this.app.config.keys + '/' + serverName + '/' + nodeName + '/' + serverIp
-                const { hosts, dialTimeout } = this.app.config.etcd
-                const client = new Etcd3({ hosts, dialTimeout })
-                await client.put(key).value(weight).ignoreLease().exec();
-            }
-        }
+        this.app.etcd = new Controller(this.app)
     }
 
 }
