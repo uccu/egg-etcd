@@ -19,14 +19,15 @@ export default class FooBoot implements IBoot {
         if (process.env.SERVER_NAME) etcdConfig.serverName = process.env.SERVER_NAME;
     }
 
-    async didReady() {
+    async didLoad() {
+        this.app.etcd = new Controller(this.app)
+    }
 
+    async didReady() {
         this.app.messenger.on('discovery', ({ name, type, server }: { name: string, type: string, server: Server }) => {
             console.log(name, type, server)
             getGroup(this.app, name)[type](new Server(server.name, server.ip, server.weight))
         });
-
-        this.app.etcd = new Controller(this.app)
     }
 
 }
