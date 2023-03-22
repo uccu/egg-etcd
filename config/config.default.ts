@@ -1,30 +1,21 @@
-import { EggAppConfig, PowerPartial } from 'egg';
 
 export default function () {
-    const config = {} as PowerPartial<EggAppConfig>;
+    return {
+        keys: 'etcd',
+        etcd: {
 
-    config.keys = 'etcd'
+            // endpoints
+            hosts: [
+                '127.0.0.1:11179'
+            ],
 
-    config.etcd = {
+            leaseTTL: 5,
+            dialTimeout: 5000,
+            serverName: 'etcd',
+            nodeName: 'node01',
+            serverWeight: 1,
+            serverIp: 'localhost',
 
-        // endpoints
-        hosts: [
-            '127.0.0.1:11179'
-        ],
-
-        leaseTTL: 5,
-
-        dialTimeout: 5000,
-
-        serverName: 'etcd',
-
-        nodeName: 'node01',
-
-        serverWeight: 1,
-
-        serverIp: 'localhost',
-
-    };
-
-    return config;
+        }
+    }
 }

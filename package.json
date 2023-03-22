@@ -1,6 +1,6 @@
 {
   "name": "egg-etcd-discovery",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "provides egg bindings for the etcd discovery.",
   "eggPlugin": {
     "name": "eggEtcdDiscovery"
@@ -40,9 +40,8 @@
   "files": [
     "config",
     "lib",
-    "app.ts",
-    "agent.ts",
-    "index.d.ts"
+    "*.js",
+    "*.ts"
   ],
   "ci": {
     "version": "14, 16, 18"
