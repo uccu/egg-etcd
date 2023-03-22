@@ -1,7 +1,7 @@
 import { Application, IBoot } from "egg";
 import Server from "./lib/discovery/server";
 import { getGroup } from "./lib/discovery/group";
-import Controller from "lib/etcd/controller";
+import Controller from "./lib/etcd/controller";
 
 export default class FooBoot implements IBoot {
 
