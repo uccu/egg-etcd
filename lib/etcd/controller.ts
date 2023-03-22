@@ -1,7 +1,7 @@
 import { Application } from "egg"
 import { Etcd3 } from "etcd3"
-import { getGroup } from "lib/discovery/group"
-import Server from "lib/discovery/server"
+import { getGroup } from "../discovery/group"
+import Server from "../discovery/server"
 
 export default class Controller {
 
