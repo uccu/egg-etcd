@@ -1,6 +1,6 @@
 import { getGroup, getGroups } from "./lib/discovery/group"
 import EtcdControl from "./lib/discovery/controller"
-import Server from "lib/discovery/server"
+import Server from "./lib/discovery/server"
 import { IOptions } from "etcd3"
 
 export { getGroup, getGroups, EtcdControl }

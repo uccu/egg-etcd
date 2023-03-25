@@ -1,7 +1,7 @@
 import { Agent, IBoot } from "egg";
 import EtcdClient from "./lib/etcd/client";
 import DiscoveryClient from "./lib/discovery/client";
-import Controller from "lib/discovery/controller";
+import Controller from "./lib/discovery/controller";
 import { EtcdControl } from "index";
 
 export default class FooBoot implements IBoot {
