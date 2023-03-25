@@ -9,6 +9,7 @@ export default class FooBoot implements IBoot {
     app: Agent
 
     constructor(app: Agent) {
+        this.app = app
         EtcdClient.init(app)
         DiscoveryClient.init(app)
     }
