@@ -1,5 +1,9 @@
-import { EggApplication } from "egg";
+import { Application, EggApplication } from "egg";
 import Server from "./server"
+
+export const emitters: { [key: string]: (() => void)[] } = {
+    nodeChanged: []
+}
 
 
 export const groups: { [key: string]: Group } = {}
@@ -17,17 +21,21 @@ export function getGroups(): { [key: string]: Group } {
 
 export default class Group {
 
-    public name: string
-    public app: EggApplication
+    private name: string
+    private app: EggApplication
     private p = 0;
     private queue: number[] = [];
 
-    private serverList: Server[] = []
+    public serverList: Server[] = []
 
     constructor(app: EggApplication, name: string) {
         this.app = app
         this.name = name
         groups[this.name] = this
+    }
+
+    toString() {
+        return JSON.stringify(this.serverList)
     }
 
     getAllServer(): Server[] {
@@ -97,6 +105,14 @@ export default class Group {
 
         if (this.app.options.type === 'agent') {
             this.app.messenger.sendToApp('discovery', { name: this.name, type, server })
+        } else {
+            if (emitters.nodeChanged) {
+                emitters.nodeChanged.forEach((e: (type: string, server: Server) => void) => e(type, server))
+            } else if (this.app instanceof Application) {
+                this.app.logger.debug('node changed', JSON.stringify(this.app.etcd.getAllServers()));
+                this.app.etcd.on('nodeChanged', (type: string, server: Server) => { console.log(type, server) });
+            }
+
         }
     }
 

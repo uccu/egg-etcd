@@ -1,41 +1,40 @@
 import { Agent, IBoot } from "egg";
-import Client from "./lib/etcd/client";
+import EtcdClient from "./lib/etcd/client";
+import DiscoveryClient from "./lib/discovery/client";
+import Controller from "lib/discovery/controller";
+import { EtcdControl } from "index";
 
 export default class FooBoot implements IBoot {
 
-    private readonly app: Agent
-    private readonly etcd: Client
+    app: Agent
 
     constructor(app: Agent) {
-        this.app = app
-        this.etcd = new Client(app)
+        EtcdClient.init(app)
+        DiscoveryClient.init(app)
     }
 
     configDidLoad() {
-        const etcdConfig = this.app.config.etcd;
-        if (process.env.SERVER_WEIGHT) etcdConfig.serverWeight = parseInt(process.env.SERVER_WEIGHT);
-        if (process.env.SERVER_IP) etcdConfig.serverIp = process.env.SERVER_IP;
-        if (process.env.NODE_NAME) etcdConfig.nodeName = process.env.NODE_NAME;
-        if (process.env.SERVER_NAME) etcdConfig.serverName = process.env.SERVER_NAME;
+        DiscoveryClient.client.importEnv()
+    }
+
+    getc(): EtcdControl {
+        return new Controller(this.app)
     }
 
     async didLoad() {
-        const etcdConfig = this.app.config.etcd;
-        this.etcd.setWatchPrefix(this.app.config.env + '/' + this.app.config.keys)
-        this.etcd.setLeaseKey(etcdConfig.serverName + '/' + etcdConfig.nodeName + '/' + etcdConfig.serverIp)
+        this.app.etcd = new Controller(this.app)
     }
 
-
     async serverDidReady() {
-        await this.etcd.setLease()
-        await this.etcd.watch()
-        await this.etcd.get()
+        DiscoveryClient.client.leaseAndPutToDiscovery()
+        DiscoveryClient.client.watchDiscoveryServer()
+        DiscoveryClient.client.callDiscovery()
     }
 
     async beforeClose() {
-        if (this.etcd.lease) {
-            await this.etcd.lease.revoke()
+        if (EtcdClient.client.lease) {
+            await EtcdClient.client.lease.revoke()
         }
-        this.etcd.close()
+        EtcdClient.client.close()
     }
 }

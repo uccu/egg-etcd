@@ -28,27 +28,37 @@ $ npm i egg-etcd-discovery --save
 }
 
 /** 
- * anywhere get server
+ * get server
  * @param string serverName
- * @return {ip: string, weight: number}
+ * @return {name: string, ip: string, weight: number}
  * /
-this.app.etcd.get(serverName);
+this.app.etcd.getNextServer(serverName);
 
 ```
+
+see [lib/discovery/controller.ts](lib/discovery/controller.ts) for more detail.
 
 ## Configuration
 
 ```js
-// {app_root}/config/config.default.js
+// {app_root}/config/config.default.ts
 exports.eggEtcdDiscovery = {
-  hosts: [
-      '172.17.0.1:2379', '72.17.0.2:2379', '72.17.0.3:2379'
-  ],
-  leaseTTL: 5,
-  dialTimeout: 5000,
-  serverName: 'etcd',
-  serverWeight: 1,
-  serverIp: 'localhost:8080',
+
+    options:{
+        hosts: [
+            '172.17.0.1:2379', '172.17.0.2:2379', '172.17.0.3:2379'
+        ],
+        dialTimeout: 5000
+    },
+
+    leaseTTL: 5,
+
+    projectName: 'etcd',
+    serverName: 'accountServer',
+    nodeName: 'node-01',
+    
+    serverIp: 'localhost:8080',
+    serverWeight: 1,
 };
 ```
 

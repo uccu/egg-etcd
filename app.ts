@@ -1,7 +1,9 @@
 import { Application, IBoot } from "egg";
 import Server from "./lib/discovery/server";
 import { getGroup } from "./lib/discovery/group";
-import Controller from "./lib/etcd/controller";
+import Controller from "./lib/discovery/controller";
+import EtcdClient from "lib/etcd/client";
+import DiscoveryClient from "lib/discovery/client";
 
 export default class FooBoot implements IBoot {
 
@@ -9,14 +11,12 @@ export default class FooBoot implements IBoot {
 
     constructor(app: Application) {
         this.app = app;
+        EtcdClient.init(app)
+        DiscoveryClient.init(app)
     }
 
     configDidLoad() {
-        const etcdConfig = this.app.config.etcd;
-        if (process.env.SERVER_WEIGHT) etcdConfig.serverWeight = parseInt(process.env.SERVER_WEIGHT);
-        if (process.env.SERVER_IP) etcdConfig.serverIp = process.env.SERVER_IP;
-        if (process.env.NODE_NAME) etcdConfig.nodeName = process.env.NODE_NAME;
-        if (process.env.SERVER_NAME) etcdConfig.serverName = process.env.SERVER_NAME;
+        DiscoveryClient.client.importEnv()
     }
 
     async didLoad() {
@@ -25,7 +25,6 @@ export default class FooBoot implements IBoot {
 
     async didReady() {
         this.app.messenger.on('discovery', ({ name, type, server }: { name: string, type: string, server: Server }) => {
-            console.log(name, type, server)
             getGroup(this.app, name)[type](new Server(server.name, server.ip, server.weight))
         });
     }
