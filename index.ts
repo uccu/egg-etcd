@@ -28,7 +28,7 @@ declare module 'egg' {
         serverWeight: number
     }
 
-    interface EggAppConfig {
+    interface NewEggAppConfig {
         etcd: EtcdConfig
     }
 
