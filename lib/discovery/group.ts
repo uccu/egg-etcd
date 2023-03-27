@@ -106,11 +106,10 @@ export default class Group {
         if (this.app.options.type === 'agent') {
             this.app.messenger.sendToApp('discovery', { name: this.name, type, server })
         } else {
-            if (emitters.nodeChanged) {
+            if (emitters.nodeChanged.length > 0) {
                 emitters.nodeChanged.forEach((e: (type: string, server: Server) => void) => e(type, server))
             } else if (this.app instanceof Application) {
-                this.app.logger.debug('node changed', JSON.stringify(this.app.etcd.getAllServers()));
-                this.app.etcd.on('nodeChanged', (type: string, server: Server) => { console.log(type, server) });
+                this.app.logger.info('node changed', JSON.stringify(this.app.etcd.getAllServers()));
             }
 
         }
