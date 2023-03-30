@@ -16,6 +16,7 @@ export default class DiscoveryClient {
   WATCH_PREFIX: string;
   LEASE_KEY: string;
   serverWeight: number;
+  nodeName: string;
 
   constructor(app: EggApplication) {
     this.app = app;
@@ -34,6 +35,7 @@ export default class DiscoveryClient {
     this.LEASE_KEY = this.WATCH_PREFIX + etcdConfig.serverName + '/' + etcdConfig.serverIp;
 
     this.serverWeight = etcdConfig.serverWeight;
+    this.nodeName = etcdConfig.nodeName;
   }
 
 
@@ -53,7 +55,7 @@ export default class DiscoveryClient {
   }
 
   leaseAndPutToDiscovery() {
-    return EtcdClient.client.setLease(this.LEASE_KEY, this.serverWeight + '');
+    return EtcdClient.client.setLease(this.LEASE_KEY, this.nodeName + '|' + this.serverWeight);
   }
 
   async callDiscovery() {
