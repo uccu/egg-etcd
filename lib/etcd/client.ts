@@ -25,8 +25,10 @@ export default class EtcdClient {
     this._client = new Etcd3(this.app.config.etcd.options);
   }
 
-  put(key: string, val: string) {
-    return this._client.put(key).value(val).exec();
+  put(key: string, val: string, ignoreLease = false) {
+    const builder = this._client.put(key).value(val);
+    if (ignoreLease)builder.ignoreLease();
+    builder.exec();
   }
 
   getByPrefix(prefix: string) {

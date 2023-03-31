@@ -30,12 +30,12 @@ export default class Controller {
     return data;
   }
 
-  async updateServerWeight({ serverName, nodeName, serverIp, weight }) {
-    return EtcdClient.client.put(this.app.config.projectName + '/' + this.app.config.env + '/discovery/' + serverName + '/' + serverIp, nodeName + '|' + weight);
+  async updateServer({ serverName, nodeName, serverIp, weight }) {
+    return EtcdClient.client.put(this.app.config.etcd.projectName + '/' + this.app.config.env + '/discovery/' + serverName + '/' + serverIp, nodeName + '|' + weight, true);
   }
 
-  put(key: string, val: string) {
-    return EtcdClient.client.put(key, val);
+  put(key: string, val: string, ignoreLease = false) {
+    return EtcdClient.client.put(key, val, ignoreLease);
   }
 
   getByPrefix(key: string) {
