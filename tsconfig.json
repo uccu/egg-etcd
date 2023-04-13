@@ -2,7 +2,7 @@
     "extends": "@eggjs/tsconfig",
     "compilerOptions": {
       "ignoreDeprecations": "5.0",
-      "declaration": true,
+      "declaration": false,
       "baseUrl": "."
     }
   }

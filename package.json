@@ -5,10 +5,6 @@
   "eggPlugin": {
     "name": "eggEtcdDiscovery"
   },
-  "egg": {
-    "declarations": true,
-    "typescript": true
-  },
   "keywords": [
     "egg",
     "etcd",
