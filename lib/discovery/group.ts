@@ -46,18 +46,24 @@ export default class Group {
     this.queue = queue.sort(() => Math.random() - 0.5);
   }
 
-  add(server: Server): void {
+  add(server: Server, send = true): void {
     for (const i in this.serverList) {
       if (this.serverList[i].ip === server.ip) {
         this.serverList[i] = server;
         this.setQueue();
-        this.sendToApp('add', server);
+        if (send) this.sendToApp('add', server);
         return;
       }
     }
     this.serverList.push(server);
     this.setQueue();
-    this.sendToApp('add', server);
+    if (send) this.sendToApp('add', server);
+  }
+
+  sendAllToApp(pid = 0): void {
+    for (const i in this.serverList) {
+      this.app.messenger.sendTo(pid, 'discovery', { name: this.name, type: 'add', server: this.serverList[i] });
+    }
   }
 
   remove(server: string | Server) {

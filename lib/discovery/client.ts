@@ -58,19 +58,19 @@ export default class DiscoveryClient {
     return EtcdClient.client.setLease(this.LEASE_KEY, this.nodeName + '|' + this.serverWeight);
   }
 
-  async callDiscovery() {
+  async callDiscovery(send = true) {
     const data = await EtcdClient.client.getByPrefix(this.WATCH_PREFIX);
     for (const i in data) {
-      this.callDiscoveryOne(i, data[i]);
+      this.callDiscoveryOne(i, data[i], send);
     }
   }
 
-  callDiscoveryOne(key:string, val:string) {
+  callDiscoveryOne(key:string, val:string, send = true) {
     const vals = val.split('|');
     const nodeName = vals[0];
     const weight = parseInt(vals[1]);
     const [ , , , serverName, serverIp ] = key.split('/');
-    getGroup(this.app, serverName).add(new Server(nodeName, serverIp, weight));
+    getGroup(this.app, serverName).add(new Server(nodeName, serverIp, weight), send);
   }
 
 
