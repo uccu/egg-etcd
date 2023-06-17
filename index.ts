@@ -26,6 +26,7 @@ declare module 'egg' {
     nodeName: string
     serverIp: string
     serverWeight: number
+    protocol: 'http' | 'https' | 'grpc'
   }
 
   interface NewEggAppConfig {

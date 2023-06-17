@@ -9,8 +9,6 @@ export default class FooBoot implements IBoot {
 
   private readonly app: Application;
 
-  private hasSentGetDiscovery = false;
-
   constructor(app: Application) {
     this.app = app;
     EtcdClient.init(app);
@@ -25,17 +23,12 @@ export default class FooBoot implements IBoot {
 
     this.app.etcd = new Controller(this.app);
     this.app.messenger.on('discovery', ({ name, type, server }: { name: string, type: string, server: Server }) => {
-      getGroup(this.app, name)[type](new Server(server.name, server.ip, server.weight));
+      getGroup(this.app, name)[type](new Server(server.name, server.ip, server.weight, server.protocol));
     });
   }
 
-  sentGetDiscovery() {
-    this.hasSentGetDiscovery = true;
-    this.app.messenger.sendToAgent('get_discovery', { pid: process.pid });
-  }
-
   async serverDidReady() {
-    if (!this.hasSentGetDiscovery) this.sentGetDiscovery();
+    this.app.messenger.sendToAgent('get_discovery', { pid: process.pid });
   }
 
 

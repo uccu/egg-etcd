@@ -56,6 +56,7 @@ exports.eggEtcdDiscovery = {
     projectName: 'etcd',
     serverName: 'accountServer',
     nodeName: 'node-01',
+    protocol: 'http',
     
     serverIp: 'localhost:8080',
     serverWeight: 1,

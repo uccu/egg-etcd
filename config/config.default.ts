@@ -18,6 +18,7 @@ export default function() {
     projectName: 'etcd',
     serverName: 'etcd',
     nodeName: 'node01',
+    protocol: 'http',
 
     serverIp: 'localhost',
     serverWeight: 1,

@@ -8,28 +8,33 @@ on:
     types: [created]
 
 jobs:
-  build:
+  build-push:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 14
-      - run: npm ci
-      - run: npm run ci
-      - run: npm run build
+      - name: Checkout Source
+        uses: actions/checkout@v3
 
-  publish-npm:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 14
-          registry-url: https://registry.npmjs.org/
-      - run: npm ci
-      - run: npm run build
-      - run: npm publish
+
+      - name: Build
+        run: |
+          npm ci
+          npm run ci
+          npm run build
+
+      - name: Publish to npm
+        run: |
+          npm config set registry https://registry.npmjs.org/
+          npm publish
         env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish to aliyun
+        run: |
+          npm config set registry ${{ secrets.ALI_NPM_REGISTER }}
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.ALI_NPM_TOKEN }}

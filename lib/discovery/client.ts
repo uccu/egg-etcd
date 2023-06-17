@@ -1,4 +1,5 @@
 import { EggApplication } from 'egg';
+import { hostname } from 'os';
 import EtcdClient from '../etcd/client';
 import { getGroup } from './group';
 import Server from './server';
@@ -17,6 +18,7 @@ export default class DiscoveryClient {
   LEASE_KEY: string;
   serverWeight: number;
   nodeName: string;
+  protocol: string;
 
   constructor(app: EggApplication) {
     this.app = app;
@@ -28,14 +30,16 @@ export default class DiscoveryClient {
     if (process.env.PROJECT_NAME) etcdConfig.projectName = process.env.PROJECT_NAME;
     if (process.env.SERVER_IP) etcdConfig.serverIp = process.env.SERVER_IP;
     if (process.env.NODE_NAME) etcdConfig.nodeName = process.env.NODE_NAME;
-    etcdConfig.nodeName = etcdConfig.nodeName || etcdConfig.serverIp;
     if (process.env.SERVER_NAME) etcdConfig.serverName = process.env.SERVER_NAME;
 
+    etcdConfig.nodeName ||= hostname();
+    etcdConfig.protocol ||= 'http';
     this.WATCH_PREFIX = etcdConfig.projectName + '/' + this.app.config.env + '/discovery/';
     this.LEASE_KEY = this.WATCH_PREFIX + etcdConfig.serverName + '/' + etcdConfig.serverIp;
 
     this.serverWeight = etcdConfig.serverWeight;
     this.nodeName = etcdConfig.nodeName;
+    this.protocol = etcdConfig.protocol;
   }
 
 
@@ -55,7 +59,7 @@ export default class DiscoveryClient {
   }
 
   leaseAndPutToDiscovery() {
-    return EtcdClient.client.setLease(this.LEASE_KEY, this.nodeName + '|' + this.serverWeight);
+    return EtcdClient.client.setLease(this.LEASE_KEY, this.nodeName + '|' + this.serverWeight + '|' + this.protocol);
   }
 
   async callDiscovery(send = true) {
@@ -69,8 +73,9 @@ export default class DiscoveryClient {
     const vals = val.split('|');
     const nodeName = vals[0];
     const weight = parseInt(vals[1]);
+    const protocol = vals[2];
     const [ , , , serverName, serverIp ] = key.split('/');
-    getGroup(this.app, serverName).add(new Server(nodeName, serverIp, weight), send);
+    getGroup(this.app, serverName).add(new Server(nodeName, serverIp, weight, protocol), send);
   }
 
 
