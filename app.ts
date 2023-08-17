@@ -1,6 +1,5 @@
 import { Application, IBoot } from 'egg';
-import Server from './lib/discovery/server';
-import { getGroup } from './lib/discovery/group';
+import { Group, getGroupOrCreate, getGroups } from './lib/discovery/group';
 import Controller from './lib/discovery/controller';
 import EtcdClient from './lib/etcd/client';
 import DiscoveryClient from './lib/discovery/client';
@@ -8,6 +7,7 @@ import DiscoveryClient from './lib/discovery/client';
 export default class FooBoot implements IBoot {
 
   private readonly app: Application;
+  private etcdServerSucceed = false;
 
   constructor(app: Application) {
     this.app = app;
@@ -20,16 +20,36 @@ export default class FooBoot implements IBoot {
   }
 
   async didLoad() {
-
     this.app.etcd = new Controller(this.app);
-    this.app.messenger.on('discovery', ({ name, type, server }: { name: string, type: string, server: Server }) => {
-      getGroup(this.app, name)[type](new Server(server.name, server.ip, server.weight, server.protocol));
+    this.app.messenger.on('etcd-server-response', ({ type, groups }: { type: 'add'|'remove', groups: Group[] }) => {
+      this.app.logger.debug('[etcd] get etcd-worker-response');
+      for (const g of groups) {
+        const group = getGroupOrCreate(this.app, g.name);
+        switch (type) {
+          case 'remove':
+            g.serverList.forEach(s => group.remove(s));
+            break;
+          default:
+            g.serverList.forEach(s => group.add(s));
+            break;
+        }
+      }
+
+      this.app.logger.debug('[etcd] app current servers: %s', JSON.stringify(getGroups()));
+
+      if (!this.etcdServerSucceed) {
+        this.etcdServerSucceed = true;
+        this.app.messenger.sendToAgent('etcd-worker-succeed', { pid: process.pid });
+        this.app.logger.debug('[etcd] send etcd-worker-succeed');
+      }
+
+      this.app.etcd.emit('ready');
     });
   }
 
   async serverDidReady() {
-    this.app.messenger.sendToAgent('get_discovery', { pid: process.pid });
+    this.app.logger.debug('[etcd] send etcd-worker-ready');
+    this.app.messenger.sendToAgent('etcd-worker-ready', { pid: process.pid });
   }
-
 
 }

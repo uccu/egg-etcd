@@ -1,15 +1,28 @@
-export default class Server {
+export class Server {
 
   public name: string;
   public ip: string;
   public weight: number;
   public protocol: string;
 
-  constructor(name: string, ip: string, weight: number, protocol:string) {
-    this.name = name;
-    this.ip = ip;
-    this.protocol = protocol;
-    if (!this.name) this.name = this.ip;
-    this.weight = weight;
+  constructor(opts: { name?: string, ip: string, weight?: number, protocol?: string }) {
+    this.ip = opts.ip;
+    this.weight = opts.weight ?? 1;
+    this.name = opts.name ?? opts.ip;
+    this.protocol = opts.protocol ?? 'no';
   }
+}
+
+export interface Server{
+  name: string;
+  ip: string;
+  weight: number;
+  protocol: string;
+}
+
+export function newServer(opts: Server | { name?: string, ip: string, weight?: number, protocol?: string }): Server {
+  if (opts instanceof Server) {
+    return opts;
+  }
+  return new Server(opts);
 }

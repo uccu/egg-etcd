@@ -2,12 +2,15 @@ import { Agent, IBoot } from 'egg';
 import EtcdClient from './lib/etcd/client';
 import DiscoveryClient from './lib/discovery/client';
 import Controller from './lib/discovery/controller';
-import { EtcdControl, getGroups } from '.';
+import { getGroups } from '.';
 
 export default class FooBoot implements IBoot {
 
   private app: Agent;
-  private ready = false;
+  private response = false;
+  private lease = false;
+  private workerReadySet = new Set<number>();
+  private workerSucceedSet = new Set<number>();
 
   queue:(()=>void)[] = [];
 
@@ -21,36 +24,79 @@ export default class FooBoot implements IBoot {
     DiscoveryClient.client.importEnv();
   }
 
-  getc(): EtcdControl {
-    return new Controller(this.app);
-  }
-
   async didLoad() {
+
     this.app.etcd = new Controller(this.app);
-    this.app.messenger.on('get_discovery', ({ pid }: { pid: number }) => {
-      if (this.ready) {
-        return this.getDiscovery(pid);
-      }
-      this.queue.push(() => {
-        this.getDiscovery(pid);
-      });
+
+    this.app.messenger.on('etcd-worker-ready', ({ pid }: { pid: number }) => {
+      this.app.logger.debug('[etcd] get etcd-worker-ready');
+      this.workerReady(pid);
     });
+
+    this.app.messenger.on('etcd-worker-succeed', ({ pid }: { pid: number }) => {
+      this.app.logger.debug('[etcd] get etcd-worker-succeed');
+      this.workerSucceed(pid);
+    });
+
   }
 
-  async getDiscovery(pid:number) {
-    const groups = getGroups();
-    for (const i in groups) {
-      groups[i].sendAllToApp(pid);
+  workerSucceed(pid:number) {
+    this.workerSucceedSet.add(pid);
+    if (this.workerSucceedSet.size === this.app.options.workers) {
+      // 所有 worker 都已经同步了 servers
+      // 注册服务
+      if (!this.lease) {
+        this.lease = true;
+        DiscoveryClient.client.leaseAndPutToDiscovery();
+      }
+      this.app.etcd.emit('ready');
+
     }
-    this.app.logger.info('etcd: Send all serverinfo to app, %d, %s', pid, JSON.stringify(this.app.etcd.getAllServers()));
+  }
+
+  workerReady(pid:number) {
+    this.workerReadySet.add(pid);
+    if (this.workerReadySet.size === this.app.options.workers) {
+      // 所有 worker 都已经 ready
+      if (!this.response) {
+        this.response = true;
+        this.send();
+      }
+    }
+    if (this.workerReadySet.size > this.app.options.workers) {
+      this.app.logger.debug('[etcd] reset');
+      this.response = false;
+      this.workerReadySet.clear();
+      this.workerSucceedSet.clear();
+      this.workerReady(pid);
+    }
+  }
+
+  // 同步服务到workers
+  async send() {
+    const groups = getGroups();
+    this.app.logger.debug('[etcd] send etcd-server-response');
+    this.app.logger.info('[etcd] Send all serverinfo to app, %s', JSON.stringify(this.app.etcd.getAllServers()));
+    this.app.messenger.sendToApp('etcd-server-response', { type: 'add', groups });
   }
 
   async serverDidReady(): Promise<void> {
-    await DiscoveryClient.client.leaseAndPutToDiscovery();
+    // 监听服务
     await DiscoveryClient.client.watchDiscoveryServer();
-    await DiscoveryClient.client.callDiscovery(false);
-    this.ready = true;
-    this.queue.forEach(q => q());
+    // 拉取服务
+    await DiscoveryClient.client.callDiscovery();
+    if (!this.response) {
+      this.response = true;
+      this.send();
+    }
+  }
+
+  async didReady() {
+    if (this.app.etcd.listenerCount('ready') === 0) {
+      this.app.etcd.once('ready', () => {
+        this.app.logger.debug('[etcd] ready2');
+      });
+    }
   }
 
   async beforeClose() {

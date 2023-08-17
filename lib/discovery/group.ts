@@ -1,21 +1,19 @@
-import { Application, EggApplication } from 'egg';
-import Server from './server';
+import { EggApplication } from 'egg';
+import { Server } from './server';
 
-export const emitters: { [key: string]: (() => void)[] } = {
-  nodeChanged: [],
-};
+export const groups: Set<Group> = new Set();
 
-
-export const groups: { [key: string]: Group } = {};
-
-
-export function getGroups(): { [key: string]: Group } {
-  return groups;
+export function getGroups(): Group[] {
+  return [ ...groups ];
 }
 
-export default class Group {
+export function getGroup(name: string): Group | undefined {
+  return getGroups().find(g => g.name === name);
+}
 
-  private name: string;
+export class Group {
+
+  name: string;
   private app: EggApplication;
   private p = 0;
   private queue: number[] = [];
@@ -25,11 +23,18 @@ export default class Group {
   constructor(app: EggApplication, name: string) {
     this.app = app;
     this.name = name;
-    groups[this.name] = this;
+    groups.add(this);
   }
 
   toString() {
-    return JSON.stringify(this.serverList);
+    return `Etcd Group [ ${this.name} ]`;
+  }
+
+  toJSON() {
+    return {
+      name: this.name,
+      serverList: this.serverList,
+    };
   }
 
   getAllServer(): Server[] {
@@ -51,6 +56,7 @@ export default class Group {
       if (this.serverList[i].ip === server.ip) {
         this.serverList[i] = server;
         this.setQueue();
+        this.app.etcd.emit('nodeChanged', 'add', server);
         if (send) this.sendToApp('add', server);
         return;
       }
@@ -60,19 +66,13 @@ export default class Group {
     if (send) this.sendToApp('add', server);
   }
 
-  sendAllToApp(pid = 0): void {
-    for (const i in this.serverList) {
-      this.app.messenger.sendTo(pid, 'discovery', { name: this.name, type: 'add', server: this.serverList[i] });
-    }
-  }
-
   remove(server: string | Server) {
 
     let ip: string;
-    if (server instanceof Server) {
-      ip = server.ip;
-    } else {
+    if (typeof server === 'string') {
       ip = server;
+    } else {
+      ip = server.ip;
     }
 
     for (let i = 0; i < this.serverList.length; i++) {
@@ -82,6 +82,7 @@ export default class Group {
           .serverList.slice(0, i)
           .concat(...this.serverList.slice(i + 1));
         this.setQueue();
+        this.app.etcd.emit('nodeChanged', 'remove', server);
         this.sendToApp('remove', server);
         return true;
       }
@@ -96,31 +97,28 @@ export default class Group {
     }
   }
 
-  next(): Server | null {
-    if (this.queue.length === 0) return null;
+  next(): Server | undefined {
+    if (this.queue.length === 0) return undefined;
     this._movePoint();
     return this.serverList[this.queue[this.p]] || this.next();
   }
 
-  sendToApp(type: string, server: Server): void {
-
+  sendToApp(type: 'remove'|'add', server: Server): void {
     if (this.app.options.type === 'agent') {
-      this.app.messenger.sendToApp('discovery', { name: this.name, type, server });
-    } else {
-      if (emitters.nodeChanged.length > 0) {
-        emitters.nodeChanged.forEach((e: (type: string, server: Server) => void) => e(type, server));
-      } else if (this.app instanceof Application) {
-        this.app.logger.info('node changed', JSON.stringify(this.app.etcd.getAllServers()));
-      }
-
+      this.app.logger.debug('[etcd] send etcd-server-response');
+      this.app.logger.info('node changed', JSON.stringify(this.app.etcd.getAllServers()));
+      this.app.messenger.sendToApp('etcd-server-response', { type, groups: [{ name: this.name, serverList: [ server ] }] });
     }
   }
 
 }
 
-export function getGroup(app: EggApplication, name: string) {
-  if (groups[name]) {
-    return groups[name];
-  }
-  return new Group(app, name);
+export interface Group {
+  name: string
+  serverList: Server[]
+}
+
+export function getGroupOrCreate(app: EggApplication, name: string): Group {
+  const group = getGroups().find(g => g.name === name);
+  return group || new Group(app, name);
 }
