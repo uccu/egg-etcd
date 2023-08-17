@@ -1,8 +1,8 @@
 import { EggApplication } from 'egg';
 import { hostname } from 'os';
 import EtcdClient from '../etcd/client';
-import { getGroup } from './group';
-import Server from './server';
+import { getGroup, getGroupOrCreate } from './group';
+import { newServer } from './server';
 import { IKeyValue } from 'etcd3';
 
 export default class DiscoveryClient {
@@ -14,18 +14,25 @@ export default class DiscoveryClient {
   }
 
   app: EggApplication;
-  WATCH_PREFIX: string;
-  LEASE_KEY: string;
-  serverWeight: number;
-  nodeName: string;
-  protocol: string;
 
   constructor(app: EggApplication) {
     this.app = app;
   }
 
+  get leaseVal() {
+    return this.app.config.etcd.nodeName + '|' + this.app.config.etcd.serverWeight + '|' + this.app.config.etcd.protocol;
+  }
+
+  get leaseKey() {
+    return this.watchPrefix + this.app.config.etcd.serverName + '/' + this.app.config.etcd.serverIp;
+  }
+
+  get watchPrefix() {
+    return this.app.config.etcd.projectName + '/' + this.app.config.env + '/discovery/';
+  }
+
   importEnv() {
-    const etcdConfig = this.app.config.etcd;
+    const etcdConfig = this.app.config.etcd || {};
     if (process.env.SERVER_WEIGHT) etcdConfig.serverWeight = parseInt(process.env.SERVER_WEIGHT);
     if (process.env.PROJECT_NAME) etcdConfig.projectName = process.env.PROJECT_NAME;
     if (process.env.SERVER_IP) etcdConfig.serverIp = process.env.SERVER_IP;
@@ -33,18 +40,13 @@ export default class DiscoveryClient {
     if (process.env.SERVER_NAME) etcdConfig.serverName = process.env.SERVER_NAME;
 
     etcdConfig.nodeName ||= hostname();
-    etcdConfig.protocol ||= 'http';
-    this.WATCH_PREFIX = etcdConfig.projectName + '/' + this.app.config.env + '/discovery/';
-    this.LEASE_KEY = this.WATCH_PREFIX + etcdConfig.serverName + '/' + etcdConfig.serverIp;
+    etcdConfig.protocol ||= 'no';
 
-    this.serverWeight = etcdConfig.serverWeight;
-    this.nodeName = etcdConfig.nodeName;
-    this.protocol = etcdConfig.protocol;
   }
 
 
   async watchDiscoveryServer() {
-    const watcher = await EtcdClient.client.watch(this.WATCH_PREFIX);
+    const watcher = await EtcdClient.client.watch(this.watchPrefix);
     watcher.on('connected', async () => {
       await EtcdClient.client.resetLease();
       return this.callDiscovery();
@@ -54,16 +56,16 @@ export default class DiscoveryClient {
     });
     watcher.on('delete', (res: IKeyValue) => {
       const [ , , , serverName, serverIp ] = res.key.toString().split('/');
-      getGroup(this.app, serverName).remove(serverIp);
+      getGroup(serverName)?.remove(serverIp);
     });
   }
 
   leaseAndPutToDiscovery() {
-    return EtcdClient.client.setLease(this.LEASE_KEY, this.nodeName + '|' + this.serverWeight + '|' + this.protocol);
+    return EtcdClient.client.setLease(this.leaseKey, this.leaseVal);
   }
 
   async callDiscovery(send = true) {
-    const data = await EtcdClient.client.getByPrefix(this.WATCH_PREFIX);
+    const data = await EtcdClient.client.getByPrefix(this.watchPrefix);
     for (const i in data) {
       this.callDiscoveryOne(i, data[i], send);
     }
@@ -75,7 +77,7 @@ export default class DiscoveryClient {
     const weight = parseInt(vals[1]);
     const protocol = vals[2];
     const [ , , , serverName, serverIp ] = key.split('/');
-    getGroup(this.app, serverName).add(new Server(nodeName, serverIp, weight, protocol), send);
+    getGroupOrCreate(this.app, serverName).add(newServer({ name: nodeName, ip: serverIp, weight, protocol }), send);
   }
 
 

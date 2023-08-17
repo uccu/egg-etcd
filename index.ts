@@ -1,21 +1,20 @@
 import { getGroup, getGroups } from './lib/discovery/group';
 import EtcdControl from './lib/discovery/controller';
-import Server from './lib/discovery/server';
 import { IOptions } from 'etcd3';
 
 export { getGroup, getGroups, EtcdControl };
 
-
 declare module 'egg' {
 
-  interface EggApplication {
-    options: {
-      type: 'agent' | 'application'
-    }
+  interface ApplicationOptions {
+    type: 'agent' | 'application'
+    workers: number
   }
 
-  interface EtcdControlOn {
-    on(e: 'nodeChanged', listener: (type: string, server: Server) => void): void
+  interface EggApplication {
+    watcher: any
+    etcd: EtcdControl
+    options: ApplicationOptions
   }
 
   interface EtcdConfig {
@@ -26,19 +25,11 @@ declare module 'egg' {
     nodeName: string
     serverIp: string
     serverWeight: number
-    protocol: 'http' | 'https' | 'grpc'
+    protocol: 'http' | 'https' | 'grpc' | 'no'
   }
 
   interface NewEggAppConfig {
     etcd: EtcdConfig
-  }
-
-  interface Agent {
-    etcd: EtcdControl & EtcdControlOn
-  }
-
-  interface Application {
-    etcd: EtcdControl & EtcdControlOn
   }
 
 }

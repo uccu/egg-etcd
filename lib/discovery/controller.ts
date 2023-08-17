@@ -1,33 +1,30 @@
 import { EggApplication } from 'egg';
-import Group, { getGroup, getGroups, emitters as groupEmitters } from './group';
-import Server from './server';
+import { Group, getGroup, getGroups } from './group';
 import EtcdClient from '../etcd/client';
 import { IKeyValue } from 'etcd3';
+import { Server } from './server';
+import { EventEmitter } from 'node:events';
 
 
-export default class Controller {
+export default class Controller extends EventEmitter {
 
   app: EggApplication;
 
   constructor(app: EggApplication) {
+    super();
     this.app = app;
   }
 
-  getNextServer(name: string): Server | null {
-    return getGroup(this.app, name).next();
+  getNextServer(name: string): Server | undefined {
+    return getGroup(name)?.next();
   }
 
-  getGroup(name: string): Group {
-    return getGroup(this.app, name);
+  getGroup(name: string): Group | undefined {
+    return getGroup(name);
   }
 
-  getAllServers(): { [key: string]: Server[] } {
-    const groups = getGroups();
-    const data: { [key: string]: Server[] } = {};
-    for (const k in groups) {
-      data[k] = groups[k].getAllServer();
-    }
-    return data;
+  getAllServers(): { name: string, serverList: Server[] }[] {
+    return getGroups().map(g => g.toJSON());
   }
 
   async updateServer({ serverName, nodeName, serverIp, weight, protocol }) {
@@ -53,9 +50,18 @@ export default class Controller {
     return EtcdClient.client.unwatch(prefix);
   }
 
-  on(e: string, listener: (...args) => void) {
-    if (e === 'nodeChanged') {
-      groupEmitters.nodeChanged.push(listener);
-    }
+  on(eventName: 'nodeChanged', listener: (type: string, server: Server) => void): this;
+  on(eventName: 'ready', listener: () => void): this;
+  on(eventName: string | symbol, listener: (...args: any[]) => void): this;
+
+  on(eventName: string | symbol, listener: (...args: any[]) => void): this {
+    return super.on(eventName, listener);
+  }
+
+  once(eventName: 'ready', listener: () => void): this;
+  once(eventName: string | symbol, listener: (...args: any[]) => void): this;
+
+  once(eventName: string | symbol, listener: (...args: any[]) => void): this {
+    return super.on(eventName, listener);
   }
 }

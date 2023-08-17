@@ -1,6 +1,6 @@
 {
   "name": "egg-etcd-discovery",
-  "version": "1.1.10-pre2",
+  "version": "1.2.0",
   "description": "provides egg bindings for the etcd discovery.",
   "eggPlugin": {
     "name": "eggEtcdDiscovery"
@@ -21,7 +21,7 @@
     "ci": "egg-bin pkgfiles --check && npm run lint",
     "lint": "eslint .",
     "pkgfiles": "egg-bin pkgfiles",
-    "dev": "npm run build && egg-bin dev"
+    "dev": "egg-bin dev"
   },
   "devDependencies": {
     "@eggjs/tsconfig": "1",
