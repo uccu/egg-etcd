@@ -23,8 +23,8 @@ export default class Controller extends EventEmitter {
     return getGroup(name);
   }
 
-  getAllServers(): { name: string, serverList: Server[] }[] {
-    return getGroups().map(g => g.toJSON());
+  getAllServers(): { [key: string]: Server[] } {
+    return Object.fromEntries(getGroups().map(g => [ g.name, g.serverList ]));
   }
 
   async updateServer({ serverName, nodeName, serverIp, weight, protocol }) {
