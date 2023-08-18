@@ -7,8 +7,10 @@ import { getGroups } from '.';
 export default class FooBoot implements IBoot {
 
   private app: Agent;
-  private response = false;
+  private ready = false;
   private lease = false;
+  private response = false;
+  private workerIsReady = false;
   private workerReadySet = new Set<number>();
   private workerSucceedSet = new Set<number>();
 
@@ -58,7 +60,8 @@ export default class FooBoot implements IBoot {
     this.workerReadySet.add(pid);
     if (this.workerReadySet.size === this.app.options.workers) {
       // 所有 worker 都已经 ready
-      if (!this.response) {
+      this.workerIsReady = true;
+      if (!this.response && this.ready) {
         this.response = true;
         this.send();
       }
@@ -85,7 +88,9 @@ export default class FooBoot implements IBoot {
     await DiscoveryClient.client.watchDiscoveryServer();
     // 拉取服务
     await DiscoveryClient.client.callDiscovery();
-    if (!this.response) {
+
+    this.ready = true;
+    if (!this.response && this.workerIsReady) {
       this.response = true;
       this.send();
     }
