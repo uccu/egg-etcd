@@ -104,6 +104,7 @@ export class Group {
   }
 
   sendToApp(type: 'remove'|'add', server: Server): void {
+    // @ts-ignore
     if (this.app.options.type === 'agent') {
       this.app.logger.debug('[etcd] send etcd-server-response');
       this.app.logger.info('node changed', JSON.stringify(this.app.etcd.getAllServers()));

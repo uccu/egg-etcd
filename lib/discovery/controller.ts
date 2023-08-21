@@ -62,6 +62,6 @@ export default class Controller extends EventEmitter {
   once(eventName: string | symbol, listener: (...args: any[]) => void): this;
 
   once(eventName: string | symbol, listener: (...args: any[]) => void): this {
-    return super.on(eventName, listener);
+    return super.once(eventName, listener);
   }
 }

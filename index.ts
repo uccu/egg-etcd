@@ -6,15 +6,9 @@ export { getGroup, getGroups, EtcdControl };
 
 declare module 'egg' {
 
-  interface ApplicationOptions {
-    type: 'agent' | 'application'
-    workers: number
-  }
-
   interface EggApplication {
     watcher: any
     etcd: EtcdControl
-    options: ApplicationOptions
   }
 
   interface EtcdConfig {
