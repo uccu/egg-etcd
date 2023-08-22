@@ -8,3 +8,5 @@ run/
 *.swp
 typings/
 app/
+*.js
+.vscode
