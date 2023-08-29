@@ -1,6 +1,6 @@
 {
   "name": "egg-etcd-discovery",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "provides egg bindings for the etcd discovery.",
   "eggPlugin": {
     "name": "eggEtcdDiscovery"

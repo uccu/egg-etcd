@@ -90,7 +90,7 @@ export default class FooBoot implements IBoot {
     // 监听服务
     await DiscoveryClient.client.watchDiscoveryServer();
     // 拉取服务
-    await DiscoveryClient.client.callDiscovery();
+    await DiscoveryClient.client.callDiscovery(false);
 
     this.ready = true;
     if (!this.response && this.workerIsReady) {
