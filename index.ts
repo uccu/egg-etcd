@@ -1,29 +1,28 @@
-import { getGroup, getGroups } from './lib/discovery/group';
-import EtcdControl from './lib/discovery/controller';
+import EtcdControl, { Context } from './lib/controller';
 import { IOptions } from 'etcd3';
 
-export { getGroup, getGroups, EtcdControl };
+export { EtcdControl, Context };
 
 declare module 'egg' {
 
   interface EggApplication {
-    watcher: any
-    etcd: EtcdControl
+    watcher: any;
+    etcd: EtcdControl;
   }
 
   interface EtcdConfig {
-    options: IOptions
-    leaseTTL: number
-    projectName: string
-    serverName: string
-    nodeName: string
-    serverIp: string
-    serverWeight: number
-    protocol: 'http' | 'https' | 'grpc' | 'no'
+    options: IOptions;
+    leaseTTL: number;
+    projectName: string;
+    serverName: string;
+    nodeName: string;
+    serverIp: string;
+    serverWeight: number;
+    protocol: 'http' | 'https' | 'grpc' | 'no';
   }
 
   interface NewEggAppConfig {
-    etcd: EtcdConfig
+    etcd: EtcdConfig;
   }
 
 }

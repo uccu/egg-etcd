@@ -1,15 +1,6 @@
 import { EggApplication } from 'egg';
 import { Server } from './server';
 
-export const groups: Set<Group> = new Set();
-
-export function getGroups(): Group[] {
-  return [ ...groups ];
-}
-
-export function getGroup(name: string): Group | undefined {
-  return getGroups().find(g => g.name === name);
-}
 
 export class Group {
 
@@ -23,7 +14,6 @@ export class Group {
   constructor(app: EggApplication, name: string) {
     this.app = app;
     this.name = name;
-    groups.add(this);
   }
 
   toString() {
@@ -51,19 +41,19 @@ export class Group {
     this.queue = queue.sort(() => Math.random() - 0.5);
   }
 
-  add(server: Server, send = true): void {
+  add(server: Server): void {
     for (const i in this.serverList) {
       if (this.serverList[i].ip === server.ip) {
         this.serverList[i] = server;
         this.setQueue();
         this.app.etcd.emit('nodeChanged', 'add', server);
-        if (send) this.sendToApp('add', server);
+        this.sendToApp('add', server);
         return;
       }
     }
     this.serverList.push(server);
     this.setQueue();
-    if (send) this.sendToApp('add', server);
+    this.sendToApp('add', server);
   }
 
   remove(server: string | Server) {
@@ -103,23 +93,18 @@ export class Group {
     return this.serverList[this.queue[this.p]] || this.next();
   }
 
-  sendToApp(type: 'remove'|'add', server: Server): void {
+  sendToApp(type: 'remove' | 'add', server: Server): void {
     // @ts-ignore
     if (this.app.options.type === 'agent') {
       this.app.logger.debug('[etcd] send etcd-server-response');
       this.app.logger.info('node changed', JSON.stringify(this.app.etcd.getAllServers()));
-      this.app.messenger.sendToApp('etcd-server-response', { type, groups: [{ name: this.name, serverList: [ server ] }] });
+      if (this.app.etcd.enabled) this.app.messenger.sendToApp('etcd-server-response', { type, groups: [{ name: this.name, serverList: [ server ] }] });
     }
   }
 
 }
 
 export interface Group {
-  name: string
-  serverList: Server[]
-}
-
-export function getGroupOrCreate(app: EggApplication, name: string): Group {
-  const group = getGroups().find(g => g.name === name);
-  return group || new Group(app, name);
+  name: string;
+  serverList: Server[];
 }

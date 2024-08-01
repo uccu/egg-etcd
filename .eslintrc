@@ -1,7 +1,50 @@
 {
   "root": true,
   "extends": "eslint-config-egg/typescript",
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
   "rules": {
-    "@typescript-eslint/ban-ts-comment": 0
+    "no-bitwise": 0,
+    "no-constant-condition": 0,
+    "@typescript-eslint/no-unused-vars": 0,
+    "@typescript-eslint/ban-ts-comment": 0,
+    "space-before-blocks": "off",
+    "@typescript-eslint/space-before-blocks": "error",
+    "space-infix-ops": "off",
+    "@typescript-eslint/space-infix-ops": "error",
+    "no-trailing-spaces": "error",
+    "@typescript-eslint/type-annotation-spacing": [
+      "error",
+      {
+        "before": false,
+        "after": true
+      }
+    ],
+    "@typescript-eslint/no-duplicate-enum-values": 0,
+    "no-extra-semi": "error",
+    "@typescript-eslint/member-delimiter-style": [
+      "error",
+      {
+        "multiline": {
+          "delimiter": "semi",
+          "requireLast": true
+        },
+        "singleline": {
+          "delimiter": "semi",
+          "requireLast": false
+        }
+      }
+    ],
+    "@typescript-eslint/semi": [
+      "error",
+      "always"
+    ],
+    "semi-spacing": [
+      "error",
+      {
+        "before": false
+      }
+    ]
   }
 }

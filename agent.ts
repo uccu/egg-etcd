@@ -1,8 +1,6 @@
 import { Agent, IBoot } from 'egg';
-import EtcdClient from './lib/etcd/client';
-import DiscoveryClient from './lib/discovery/client';
-import Controller from './lib/discovery/controller';
-import { getGroups } from '.';
+import DiscoveryClient from './lib/discoveryClient';
+import Controller from './lib/controller';
 
 export default class FooBoot implements IBoot {
 
@@ -14,16 +12,14 @@ export default class FooBoot implements IBoot {
   private workerReadySet = new Set<number>();
   private workerSucceedSet = new Set<number>();
 
-  queue:(()=>void)[] = [];
+  queue: (()=> void)[] = [];
 
   constructor(app: Agent) {
     this.app = app;
-    EtcdClient.init(app);
-    DiscoveryClient.init(app);
   }
 
   configDidLoad() {
-    DiscoveryClient.client.importEnv();
+    DiscoveryClient.importEnv(this.app);
   }
 
   async didLoad() {
@@ -31,70 +27,75 @@ export default class FooBoot implements IBoot {
     this.app.etcd = new Controller(this.app);
 
     this.app.messenger.on('etcd-worker-ready', ({ pid }: { pid: number }) => {
-      this.app.logger.debug('[etcd] get etcd-worker-ready');
       this.workerReady(pid);
     });
 
     this.app.messenger.on('etcd-worker-succeed', ({ pid }: { pid: number }) => {
-      this.app.logger.debug('[etcd] get etcd-worker-succeed');
       this.workerSucceed(pid);
     });
 
   }
 
-  workerSucceed(pid:number) {
+  workerSucceed(pid: number) {
     this.workerSucceedSet.add(pid);
+
     // @ts-ignore
-    if (this.workerSucceedSet.size === this.app.options.workers) {
+    const workers = this.app.options.workers || 1;
+    this.app.logger.debug('[etcd] get etcd-worker-succeed (%d/%d)', this.workerReadySet.size, workers);
+    // @ts-ignore
+    if (this.workerSucceedSet.size === workers) {
       // 所有 worker 都已经同步了 servers
       // 注册服务
       if (!this.lease) {
         this.lease = true;
-        DiscoveryClient.client.leaseAndPutToDiscovery();
+        this.app.etcd.discoveryClient.leaseAndPutToDiscovery();
       }
-      this.app.etcd.emit('ready');
+      this.app.etcd.emit('ready', this.app.etcd.ctx);
 
     }
   }
 
-  workerReady(pid:number) {
+  workerReady(pid: number) {
     this.workerReadySet.add(pid);
+
     // @ts-ignore
-    if (this.workerReadySet.size === this.app.options.workers) {
+    const workers = this.app.options.workers || 1;
+    this.app.logger.debug('[etcd] get etcd-worker-ready (%d/%d)', this.workerReadySet.size, workers);
+    if (this.workerReadySet.size === workers) {
       // 所有 worker 都已经 ready
       this.workerIsReady = true;
       if (!this.response && this.ready) {
-        this.response = true;
         this.send();
       }
     }
-    // @ts-ignore
-    if (this.workerReadySet.size > this.app.options.workers) {
-      this.app.logger.debug('[etcd] reset');
-      this.response = false;
-      this.workerReadySet.clear();
-      this.workerSucceedSet.clear();
-      this.workerReady(pid);
+
+    // 应用进程重启后重新同步服务
+    if (!workers || this.workerReadySet.size > workers) {
+      this.app.etcd.discoveryClient.syncToApp(pid);
+      this.app.etcd.configClient.syncToApp({ pid });
     }
   }
 
   // 同步服务到workers
   async send() {
-    const groups = getGroups();
-    this.app.logger.debug('[etcd] send etcd-server-response');
+    this.response = true;
+    this.app.etcd.enabled = true;
+    this.app.etcd.discoveryClient.syncToApp();
+    this.app.etcd.configClient.syncToApp();
+    this.app.logger.debug('[etcd] etcd synced');
     this.app.logger.info('[etcd] Send all serverinfo to app, %s', JSON.stringify(this.app.etcd.getAllServers()));
-    this.app.messenger.sendToApp('etcd-server-response', { type: 'add', groups });
+    this.app.logger.info('[etcd] Send all configInfo to app, %s', JSON.stringify(this.app.etcd.configClient.config));
   }
 
   async serverDidReady(): Promise<void> {
-    // 监听服务
-    await DiscoveryClient.client.watchDiscoveryServer();
-    // 拉取服务
-    await DiscoveryClient.client.callDiscovery(false);
+    // 监听服务 & 拉取服务
+    await this.app.etcd.discoveryClient.watch();
+    await this.app.etcd.discoveryClient.sync();
 
+    await this.app.etcd.configClient.watch();
+    await this.app.etcd.configClient.sync();
     this.ready = true;
     if (!this.response && this.workerIsReady) {
-      this.response = true;
       this.send();
     }
   }
@@ -108,9 +109,9 @@ export default class FooBoot implements IBoot {
   }
 
   async beforeClose() {
-    if (EtcdClient.client.lease) {
-      await EtcdClient.client.lease.revoke();
+    if (this.app.etcd.etcdClient.lease) {
+      await this.app.etcd.etcdClient.lease.revoke();
     }
-    EtcdClient.client.close();
+    this.app.etcd.etcdClient.close();
   }
 }

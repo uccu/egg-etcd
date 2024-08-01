@@ -4,12 +4,6 @@ import { EggApplication } from 'egg';
 
 export default class EtcdClient {
 
-  static client: EtcdClient;
-
-  public static init(app: EggApplication) {
-    EtcdClient.client = new EtcdClient(app);
-  }
-
   private readonly app: EggApplication;
   public lease: Lease;
   private _client: Etcd3;
@@ -28,31 +22,25 @@ export default class EtcdClient {
   put(key: string, val: string, ignoreLease = false) {
     const builder = this._client.put(key).value(val);
     if (ignoreLease)builder.ignoreLease();
-    builder.exec();
+    return builder.exec();
+  }
+
+  delete(prefix: string) {
+    const builder = this._client.delete().prefix(prefix);
+    return builder.exec();
   }
 
   getByPrefix(prefix: string) {
     return this._client.getAll().prefix(prefix).strings();
   }
 
-  initLease() {
+  async initLease() {
     this.lease = this._client.lease(this.app.config.etcd.leaseTTL);
-  }
-
-  async resetLease(force = false) {
-
-    if (!this.lease) {
-      return;
-    }
-
-    if (!this.lease.revoked()) {
-      if (!force) {
-        return;
-      }
-      await this.lease.revoke();
-    }
-    this.lease.release();
-    this.initLease();
+    this.lease.on('lost', err => {
+      console.error('We lost our lease as a result of this error:', err);
+      console.log('Trying to re-grant it...');
+      this.initLease();
+    });
 
     for (const key in this._lease) {
       await this.lease.put(key).value(this._lease[key]).exec();

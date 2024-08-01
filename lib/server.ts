@@ -5,7 +5,7 @@ export class Server {
   public weight: number;
   public protocol: string;
 
-  constructor(opts: { name?: string, ip: string, weight?: number, protocol?: string }) {
+  constructor(opts: { name?: string; ip: string; weight?: number; protocol?: string }) {
     this.ip = opts.ip;
     this.weight = opts.weight ?? 1;
     this.name = opts.name ?? opts.ip;
@@ -13,14 +13,14 @@ export class Server {
   }
 }
 
-export interface Server{
+export interface Server {
   name: string;
   ip: string;
   weight: number;
   protocol: string;
 }
 
-export function newServer(opts: Server | { name?: string, ip: string, weight?: number, protocol?: string }): Server {
+export function newServer(opts: Server | { name?: string; ip: string; weight?: number; protocol?: string }): Server {
   if (opts instanceof Server) {
     return opts;
   }

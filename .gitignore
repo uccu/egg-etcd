@@ -10,3 +10,4 @@ typings/
 app/
 *.js
 .vscode
+logs2/
