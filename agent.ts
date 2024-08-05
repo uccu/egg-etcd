@@ -84,7 +84,6 @@ export default class FooBoot implements IBoot {
     this.app.etcd.configClient.syncToApp();
     this.app.logger.debug('[etcd] etcd synced');
     this.app.logger.info('[etcd] Send all serverinfo to app, %s', JSON.stringify(this.app.etcd.getAllServers()));
-    this.app.logger.info('[etcd] Send all configInfo to app, %s', JSON.stringify(this.app.etcd.configClient.config));
   }
 
   async serverDidReady(): Promise<void> {
