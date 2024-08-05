@@ -46,10 +46,6 @@ export default class ConfigClient {
 
   bindListeners() {
     this.app.messenger.on('etcd-server-config', (data: {name: string;value: unknown}) => {
-
-      this.config[data.name] = data.value;
-      this.app.config[data.name] = data.value;
-
       this.app.logger.debug('[etcd] app current config: %s', JSON.stringify(this.config));
       this.app.etcd.emit('configChanged', this.app.etcd.ctx, data.name, data.value);
     });
