@@ -6,6 +6,7 @@
   },
   "rules": {
     "no-bitwise": 0,
+    "no-empty-function": 0,
     "no-constant-condition": 0,
     "@typescript-eslint/no-unused-vars": 0,
     "@typescript-eslint/ban-ts-comment": 0,

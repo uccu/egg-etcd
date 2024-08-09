@@ -13,12 +13,6 @@ export class Server {
   }
 }
 
-export interface Server {
-  name: string;
-  ip: string;
-  weight: number;
-  protocol: string;
-}
 
 export function newServer(opts: Server | { name?: string; ip: string; weight?: number; protocol?: string }): Server {
   if (opts instanceof Server) {

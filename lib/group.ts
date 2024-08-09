@@ -103,8 +103,3 @@ export class Group {
   }
 
 }
-
-export interface Group {
-  name: string;
-  serverList: Server[];
-}

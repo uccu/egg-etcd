@@ -1,5 +1,5 @@
 import { EggApplication } from 'egg';
-import { hostname } from 'os';
+import { hostname } from 'node:os';
 import { Group } from './group';
 import { newServer } from './server';
 import { IKeyValue } from 'etcd3';
@@ -31,7 +31,6 @@ export default class DiscoveryClient {
 
 
   constructor(private app: EggApplication) {
-
   }
 
   get leaseVal() {
